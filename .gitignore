@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.openclaw/
+
+# Docker compose extra files
+docker-compose.extra.yml
+docker-compose.override.yml
+
+# Runtime
+*.log
+.DS_Store
+node_modules/
