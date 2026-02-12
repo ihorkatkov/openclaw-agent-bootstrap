@@ -5,8 +5,8 @@ Deploy your own OpenClaw AI agent in minutes.
 ## Quick Start
 
 ```bash
-git clone https://github.com/<your-github-user>/openclaw-agent
-cd openclaw-agent
+git clone https://github.com/ihorkatkov/openclaw-agent-bootstrap.git
+cd openclaw-agent-bootstrap
 ./setup.sh
 ```
 
