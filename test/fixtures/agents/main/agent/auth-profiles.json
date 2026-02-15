@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "profiles": {
+    "fake": {
+      "type": "api_key",
+      "provider": "fake",
+      "key": "fake-api-key"
+    }
+  },
+  "lastGood": {
+    "fake": "fake"
+  },
+  "usageStats": {
+    "fake": {
+      "lastUsed": 1771168090442,
+      "errorCount": 0
+    }
+  }
+}

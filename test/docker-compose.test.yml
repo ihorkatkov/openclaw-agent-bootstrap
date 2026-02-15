@@ -1,0 +1,79 @@
+services:
+  fake-llm:
+    build: ./fake-llm
+    networks: [aegis-test]
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:8080/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))\""]
+      interval: 2s
+      retries: 10
+      start_period: 5s
+
+  gateway:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
+    depends_on:
+      fake-llm:
+        condition: service_healthy
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${TEST_GATEWAY_TOKEN}
+    volumes:
+      - ./fixtures:/home/node/.openclaw
+      - test-workspace:/home/node/.openclaw/workspace
+      - ../extensions:/home/node/.openclaw/extensions:ro
+    command:
+      [
+        "node",
+        "dist/index.js",
+        "gateway",
+        "--bind",
+        "lan",
+        "--port",
+        "18789",
+      ]
+    networks: [aegis-test]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:18789/ || exit 0"]
+      interval: 3s
+      retries: 30
+      start_period: 5s
+
+  test-runner:
+    image: ${OPENCLAW_IMAGE:-openclaw:local}
+    depends_on:
+      fake-llm:
+        condition: service_healthy
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${TEST_GATEWAY_TOKEN}
+      FAKE_LLM_URL: http://fake-llm:8080
+      BROWSER: echo
+    tmpfs:
+      - /home/node/.openclaw/workspace:uid=1000,gid=1000
+    volumes:
+      - ./fixtures:/home/node/.openclaw
+      - ../extensions:/home/node/.openclaw/extensions:ro
+      - ./runner:/test
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        node dist/index.js gateway --bind loopback --port 18789 &
+        GATEWAY_PID=$$!
+        # Wait for gateway to be ready
+        for i in $$(seq 1 30); do
+          wget -q --spider http://127.0.0.1:18789/ 2>/dev/null && break
+          sleep 1
+        done
+        node --test /test/run-tests.mjs
+        rc=$$?
+        kill $$GATEWAY_PID 2>/dev/null
+        exit $$rc
+    networks: [aegis-test]
+
+networks:
+  aegis-test:
+
+volumes:
+  test-workspace:

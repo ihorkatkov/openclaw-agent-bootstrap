@@ -1,0 +1,8 @@
+{
+  "name": "@openclaw-bootstrap/aegis",
+  "version": "0.1.0",
+  "description": "Aegis — bidirectional firewall plugin for OpenClaw agents",
+  "type": "module",
+  "main": "index.ts",
+  "license": "MIT"
+}
