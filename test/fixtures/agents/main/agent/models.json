@@ -1,0 +1,27 @@
+{
+  "providers": {
+    "fake": {
+      "baseUrl": "http://fake-llm:8080/v1",
+      "models": [
+        {
+          "id": "fake-model",
+          "name": "Fake Model",
+          "api": "openai-completions",
+          "reasoning": false,
+          "input": [
+            "text"
+          ],
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "contextWindow": 200000,
+          "maxTokens": 8192
+        }
+      ],
+      "apiKey": "fake-api-key"
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "gateway": {
+    "mode": "local"
+  },
+  "models": {
+    "providers": {
+      "fake": {
+        "baseUrl": "http://fake-llm:8080/v1",
+        "models": [
+          {
+            "id": "fake-model",
+            "name": "Fake Model",
+            "api": "openai-completions"
+          }
+        ]
+      }
+    }
+  },
+  "agents": {
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "model": "fake/fake-model"
+      }
+    ]
+  },
+  "plugins": {
+    "entries": {
+      "aegis": {
+        "enabled": true,
+        "config": {
+          "vault": {
+            "API_KEY": "sk-test-secret-value-12345",
+            "GITHUB_TOKEN": "ghp_testvaulttoken000000000000000000000000"
+          },
+          "sanitization": {
+            "enabled": true,
+            "useDefaultPatterns": true,
+            "extraPatterns": [],
+            "replacement": "[REDACTED]"
+          },
+          "rules": {
+            "defaults": { "deny": [] },
+            "tools": {
+              "exec": {
+                "deny": [".*"],
+                "allow": [
+                  "^echo\\b",
+                  "^ls\\b",
+                  "^pwd$",
+                  "^cat\\b(?!.*\\.env)"
+                ],
+                "paramRules": {
+                  "command": {
+                    "deny": [
+                      "rm\\s+-rf\\s+/(?!tmp)",
+                      "curl.*\\|\\s*sh",
+                      "cat\\s+.*\\.env"
+                    ]
+                  }
+                },
+                "blockMessage": "Shell command blocked by Aegis. Only safe, allow-listed commands are permitted."
+              },
+              "read": {
+                "deny": [".*"],
+                "allow": ["^\\.\\/" , "^\\/workspace\\/"],
+                "paramRules": {
+                  "file_path": {
+                    "allow": ["^\\.\\/" , "^\\/workspace\\/"],
+                    "deny": ["\\.env$", "\\.ssh\\/", "\\/etc\\/shadow", "\\/etc\\/passwd"]
+                  }
+                },
+                "blockMessage": "File read blocked by Aegis. Only workspace paths are permitted."
+              },
+              "write": {
+                "deny": [".*"],
+                "allow": ["^\\.\\/" , "^\\/workspace\\/"],
+                "paramRules": {
+                  "file_path": {
+                    "allow": ["^\\.\\/" , "^\\/workspace\\/"],
+                    "deny": ["^\\/etc\\/", "^\\/usr\\/", "\\.ssh\\/", "\\.env$"]
+                  }
+                },
+                "blockMessage": "File write blocked by Aegis. Target path is restricted."
+              },
+              "web_fetch": {
+                "paramRules": {
+                  "url": {
+                    "deny": [
+                      "127\\.",
+                      "localhost",
+                      "169\\.254\\.",
+                      "0\\.0\\.0\\.0",
+                      "metadata\\.google\\.",
+                      "metadata\\.aws\\.internal",
+                      "^file:\\/\\/"
+                    ]
+                  }
+                },
+                "blockMessage": "URL blocked by Aegis. Internal/metadata endpoints and dangerous protocols are restricted."
+              }
+            }
+          },
+          "systemPromptHint": true,
+          "logBlocked": true
+        }
+      }
+    }
+  },
+  "channels": {}
+}

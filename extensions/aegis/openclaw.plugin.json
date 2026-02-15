@@ -1,0 +1,92 @@
+{
+  "id": "aegis",
+  "name": "Aegis",
+  "description": "Bidirectional firewall plugin — vault-based secret injection/scrubbing, regex sanitization, and per-tool allow/deny gatekeeper rules.",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "vault": {
+        "type": "object",
+        "additionalProperties": { "type": "string" },
+        "default": {}
+      },
+      "sanitization": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean", "default": true },
+          "useDefaultPatterns": { "type": "boolean", "default": true },
+          "extraPatterns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": []
+          },
+          "replacement": { "type": "string", "default": "[REDACTED]" }
+        },
+        "default": {}
+      },
+      "rules": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "defaults": { "$ref": "#/$defs/toolRuleSet" },
+          "tools": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/$defs/toolRuleSet" }
+          }
+        },
+        "default": {}
+      },
+      "systemPromptHint": { "type": "boolean", "default": true },
+      "logBlocked": { "type": "boolean", "default": true }
+    },
+    "$defs": {
+      "paramRules": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "allow": { "type": "array", "items": { "type": "string" } },
+          "deny": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "toolRuleSet": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "allow": { "type": "array", "items": { "type": "string" } },
+          "deny": { "type": "array", "items": { "type": "string" } },
+          "paramRules": {
+            "type": "object",
+            "additionalProperties": { "$ref": "#/$defs/paramRules" }
+          },
+          "blockMessage": { "type": "string" }
+        }
+      }
+    }
+  },
+  "uiHints": {
+    "vault": {
+      "label": "Secret Vault",
+      "help": "Placeholder name → real secret value. The model sees {{NAME}}, never the real value.",
+      "sensitive": true
+    },
+    "sanitization": {
+      "label": "Input Sanitization",
+      "help": "Regex-based secret detection on tool results before they reach the model."
+    },
+    "rules": {
+      "label": "Tool Rules",
+      "help": "Per-tool allow/deny regex rules for outbound tool call filtering.",
+      "advanced": true
+    },
+    "systemPromptHint": {
+      "label": "System Prompt Hint",
+      "help": "Inject a context hint telling the model about available placeholders and blocked-call guidance."
+    },
+    "logBlocked": {
+      "label": "Log Blocked Calls",
+      "help": "Log blocked tool calls to the plugin logger."
+    }
+  }
+}

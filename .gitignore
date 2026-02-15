@@ -1,7 +1,9 @@
 .env
 .env.*
 !.env.example
+!test/.env.test
 .openclaw/
+test/workspace/
 
 # Docker compose extra files
 docker-compose.extra.yml

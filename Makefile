@@ -12,7 +12,7 @@ endif
 OPENCLAW_IMAGE ?= openclaw:local
 OPENCLAW_GATEWAY_PORT ?= 18789
 
-.PHONY: help setup start stop restart logs status doctor shell cli onboard clean
+.PHONY: help setup start stop restart logs status doctor shell cli onboard clean test test-build test-clean
 
 help: ## Show available commands
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z0-9_-]+:.*##/ {printf "%-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -80,3 +80,20 @@ onboard: ## Re-run onboarding wizard
 
 clean: ## Remove containers and volumes
 	$(COMPOSE) down -v
+
+# ---------------------------------------------------------------------------
+# Testing
+# ---------------------------------------------------------------------------
+TEST_COMPOSE = $(COMPOSE) -f test/docker-compose.test.yml --env-file test/.env.test -p openclaw-aegis-test
+
+test-build: ## Build test containers
+	$(TEST_COMPOSE) build
+
+test: test-build ## Run Aegis e2e tests
+	$(TEST_COMPOSE) up --abort-on-container-exit --exit-code-from test-runner; \
+	rc=$$?; \
+	$(TEST_COMPOSE) down -v; \
+	exit $$rc
+
+test-clean: ## Tear down test environment
+	$(TEST_COMPOSE) down -v --remove-orphans
